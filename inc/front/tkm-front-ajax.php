@@ -106,7 +106,19 @@ class TKM_Front_AJAX
             'voice' => null,
         ];
 
-        $status = !empty($_POST['status']) ? $_POST['status'] : 'open';
+        // وضعیت ارسالی از فرم؛ تنها در صورتی مقدار دارد که کاربر گزینه «بستن تیکت» را انتخاب کرده باشد
+        $requested_status = !empty($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+
+        if ($requested_status === 'closed') {
+            // اگر پاسخ‌دهنده تیکت را بسته باشد، وضعیت «بسته شده» باقی می‌ماند
+            $status = 'closed';
+        } elseif (current_user_can('manage_options')) {
+            // پاسخ توسط مدیر/پشتیبان: وضعیت تیکت به صورت خودکار به «پاسخ داده شده» تغییر می‌کند
+            $status = 'answerd';
+        } else {
+            // پاسخ توسط کاربر: تیکت در وضعیت «باز» (در انتظار پاسخ پشتیبان) قرار می‌گیرد
+            $status = 'open';
+        }
 
         if (isset($_FILES['file'])) {
             $uploader = new TKM_Upload_File($_FILES['file']);
